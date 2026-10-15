@@ -20,7 +20,7 @@ const KNOWN_ASSETS: Record<string, string> = {
   "team-micah": "/team-micah.png",
   "team-kaboyo": "/team-kaboyo.png",
   "team-matthew": "/team-matthew.png",
-  "team-mershack": "/team-mershack.png",
+  "team-norah": "/team-norah.png",
   "team-oliver": "/team-oliver.png"
 };
 

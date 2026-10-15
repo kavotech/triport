@@ -4,6 +4,7 @@ export interface TeamMember {
   role: string;
   qualifications: string;
   image: string;
+  imagePosition?: string;
   bio: string;
   responsibilities: string[];
   quote: string;
@@ -16,6 +17,7 @@ export const teamMembers: TeamMember[] = [
     role: "Managing Director & Founder",
     qualifications: "B. Economics and Management, Uganda Christian University",
     image: "/team-micah.png",
+    imagePosition: "center top",
     bio: `Micah Bamutura is the visionary founder of Triport Agro International Limited, bringing deep expertise in economics and agricultural trade. He leads the company's strategy to connect Ugandan farmers with premium international markets, ensuring sustainable growth and fair trade practices.
 
 Under his leadership, Triport Agro has expanded its export footprint across Europe, the Middle East, and Asia, building trusted partnerships with buyers and farming communities alike.`,
@@ -59,20 +61,21 @@ He ensures that every shipment meets international standards by overseeing quali
     quote: "Operations Manager accountable for ensuring seamless product flow from Ugandan farms to international buyers with full quality assurance."
   },
   {
-    slug: "mershack",
-    name: "Manyakozu Mershack Javan",
-    role: "Business Development Officer",
-    qualifications: "BA in Development Economics, Makerere University Kampala",
-    image: "/team-mershack.png",
-    bio: `Manyakozu Mershack Javan drives business development initiatives at Triport Agro, identifying new market opportunities and strategic partnerships. His background in development economics provides a strong analytical foundation for evaluating market trends and commercial viability.
+    slug: "norah",
+    name: "Norah Amanya",
+    role: "Legal Administrator",
+    qualifications: "LLM Oil and Gas Law, University of Aberdeen; LLB (Hons), Uganda Christian University",
+    image: "/team-norah.png",
+    imagePosition: "center 8%",
+    bio: `Norah Amanya is an Advocate of the High Court of Uganda and serves as Legal Administrator at Triport Agro International Limited. She brings 11 years of experience across private practice and in-house leadership, including her role as General Counsel at CITI Global and as Senior Associate at Cristal Advocates and ABMAK Associates. She is also a Partner at <a href="https://www.moonstoneadvocates.com/team/norah-amanya/" target="_blank" rel="noopener" class="team-modal-link">Moonstone Advocates</a>.
 
-He works closely with the leadership team to explore new export destinations, product diversification, and partnership models that support sustainable business growth.`,
+She holds a Master of Laws (LLM) in Oil and Gas Law from the University of Aberdeen, a Bachelor of Laws (LLB Hons) from Uganda Christian University, a Postgraduate Diploma in Legal Practice from the Law Development Centre, and a Postgraduate Diploma in Tax and Revenue Administration. She is a member of the Uganda Law Society, the East African Law Society, the Association of International Energy Negotiators and the Institute for African Women in Law.`,
     responsibilities: [
-      "Identifies and evaluates new market opportunities and trade partnerships",
-      "Conducts market research and competitive analysis to inform strategic decisions",
-      "Develops proposals and business cases for new product lines and export routes"
+      "Oversees contracts, trade agreements, and legal documentation for export transactions",
+      "Advises on corporate governance, regulatory compliance, and legal risk management",
+      "Supports tax, licensing, and cross-border compliance requirements for international shipments"
     ],
-    quote: "Business Development Officer responsible for expanding Triport Agro's market reach and identifying strategic growth opportunities."
+    quote: "Legal Administrator safeguarding Triport Agro's contracts, compliance, and governance as the company grows across international markets."
   },
   {
     slug: "oliver",

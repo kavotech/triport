@@ -16,7 +16,7 @@ export default defineConfig({
         teamMicah: resolve(__dirname, "team-micah.html"),
         teamKaboyo: resolve(__dirname, "team-kaboyo.html"),
         teamMatthew: resolve(__dirname, "team-matthew.html"),
-        teamMershack: resolve(__dirname, "team-mershack.html"),
+        teamNorah: resolve(__dirname, "team-norah.html"),
         teamOliver: resolve(__dirname, "team-oliver.html"),
       }
     }

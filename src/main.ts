@@ -495,7 +495,7 @@ function wireTeamModal(): void {
   // Move modal to document.body so no ancestor can clip it
   document.body.appendChild(overlay);
 
-  let members: { slug: string; name: string; role: string; qualifications: string; image: string; bio: string; responsibilities: string[]; quote: string }[] = [];
+  let members: { slug: string; name: string; role: string; qualifications: string; image: string; imagePosition?: string; bio: string; responsibilities: string[]; quote: string }[] = [];
   try {
     members = JSON.parse(dataEl.textContent || "[]");
   } catch {
@@ -518,8 +518,10 @@ function wireTeamModal(): void {
 
     photoEl.src = m.image;
     photoEl.alt = m.name;
+    photoEl.style.objectPosition = m.imagePosition ?? "center";
     nameEl.textContent = m.name;
     roleEl.textContent = m.role;
+    qualsEl.hidden = !m.qualifications;
     qualsEl.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> ${m.qualifications}`;
     bodyEl.innerHTML = m.bio.split("\n\n").map(p => `<p>${p}</p>`).join("");
     respEl.innerHTML = m.responsibilities.map(r => `<li>${r}</li>`).join("");

@@ -354,7 +354,7 @@ export function teamSection(): string {
       <div class="container">
         <div class="section-head reveal">
           <h2>Our Team</h2>
-          <p>Experienced leaders at the intersection of agriculture, technology, and finance.</p>
+          <p>Experienced leaders at the intersection of agriculture, trade, law, and finance.</p>
         </div>
         <div class="team-grid">
           ${members
@@ -362,14 +362,14 @@ export function teamSection(): string {
               (m, i) => `
             <article class="team-card reveal" id="team-${m.slug}">
               <div class="team-photo-wrap">
-                <img class="team-photo" src="${m.image}" alt="${m.name}" loading="lazy" decoding="async" onerror="this.style.display='none'" style="object-position:${i === 0 ? 'top center' : 'center'}" />
+                <img class="team-photo" src="${m.image}" alt="${m.name}" loading="lazy" decoding="async" onerror="this.style.display='none'" style="object-position:${m.imagePosition ?? "center"}" />
               </div>
               <a href="/team-${m.slug}" class="team-name-link">
                 <h3 class="team-name">${m.name}</h3>
               </a>
               <span class="team-role">${m.role}</span>
-              <span class="team-quals"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> ${m.qualifications}</span>
-              <button type="button" class="team-link" data-team-index="${i}">View Full Profile <span>&rsaquo;</span></button>
+              ${m.qualifications ? `<span class="team-quals"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg><span>${m.qualifications}</span></span>` : ""}
+              <button type="button" class="team-link" data-team-index="${i}">View Full Profile <span aria-hidden="true">&rsaquo;</span></button>
             </article>
           `
             )
@@ -377,7 +377,7 @@ export function teamSection(): string {
         </div>
       </div>
     </section>
-    <script type="application/json" id="teamData">${JSON.stringify(members.map(m => ({ slug: m.slug, name: m.name, role: m.role, qualifications: m.qualifications, image: m.image, bio: m.bio, responsibilities: m.responsibilities, quote: m.quote })))}</script>
+    <script type="application/json" id="teamData">${JSON.stringify(members.map(m => ({ slug: m.slug, name: m.name, role: m.role, qualifications: m.qualifications, image: m.image, imagePosition: m.imagePosition, bio: m.bio, responsibilities: m.responsibilities, quote: m.quote })))}</script>
   `;
 }
 
