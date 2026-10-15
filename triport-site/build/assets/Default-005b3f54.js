@@ -1,0 +1,1 @@
+import{j as o,P as s}from"./app-7ad56484.js";import{b as e}from"./Layout-7bc883fc.js";import{B as a}from"./Blocks-c8b3aa0c.js";/* empty css            */import"./NewsCard-6366e9a6.js";function t({blocks:r}){return o.jsx(o.Fragment,{children:r.length>0&&o.jsx(a,{blocks:r})})}t.propTypes={blocks:s.array.isRequired};t.layout=r=>o.jsx(e,{children:r});export{t as default};

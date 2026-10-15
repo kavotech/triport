@@ -1,5 +1,25 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "cleanUrls": true
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/about", "destination": "/company-overview", "permanent": true },
+    { "source": "/products", "destination": "/our-products", "permanent": true },
+    { "source": "/markets", "destination": "/company-overview", "permanent": true },
+    { "source": "/retail", "destination": "/our-products/fresh-fruits", "permanent": true },
+    { "source": "/process", "destination": "/innovation", "permanent": true },
+    { "source": "/faq", "destination": "/contact-us", "permanent": true },
+    { "source": "/quote", "destination": "/contact-us#quote", "permanent": true },
+    { "source": "/home", "destination": "/", "permanent": true }
+  ],
+  "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
+    },
+    {
+      "source": "/build/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ]
 }
