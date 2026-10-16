@@ -105,7 +105,7 @@
   }
   function checkPending() {
     var h = innerHeight * 0.92;
-    document.querySelectorAll('.tp-r:not(.tp-in), .tp-title:not(.tp-in), .tp-countable:not(.tp-in), .tp-zoom:not(.tp-in), .tp-zoom-img:not(.tp-in)').forEach(function (el) {
+    document.querySelectorAll('.tp-r:not(.tp-in), .tp-title:not(.tp-in), .tp-countable:not(.tp-in), .tp-zoom:not(.tp-in), .tp-zoom-img:not(.tp-in), .tp-tagwait:not(.tp-in)').forEach(function (el) {
       var r = el.getBoundingClientRect();
       if ((r.top < h && r.bottom > 0) || (r.width === 0 && r.height === 0 && !el.offsetParent)) reveal(el);
     });
@@ -188,7 +188,7 @@
       if (/triport-logo|\.svg$/.test(src) || img.width < 120) return;
       if (/-r\.webp$/.test(src)) { img.classList.add("tp-bob"); return; }
       var box = img.parentElement;
-      if (box && /rounded/.test(box.className + "") && box.children.length === 1) { box.classList.add("tp-zoom"); watch(box, "", 0); }
+      if (box && /rounded/.test(box.className + "") && box.children.length === 1) { box.classList.add("tp-zoom"); watch(box, "tp-wipe", 0); }
       else watch(img, "tp-zoom-img", 0);
     });
     root.querySelectorAll('[class*="rounded-xl"], [class*="rounded-lg"]').forEach(function (card) {
@@ -197,8 +197,11 @@
     });
     root.querySelectorAll("button, a").forEach(function (b) {
       if (b.__tpS) return;
-      if (/rounded-full/.test(b.className + "") || (b.firstElementChild && /rounded-full/.test(b.firstElementChild.className + ""))) { b.__tpS = true; b.classList.add("tp-shine"); }
+      if ((/rounded-full/.test(b.className + "") || (b.firstElementChild && /rounded-full/.test(b.firstElementChild.className + ""))) && getComputedStyle(b).display !== "inline" && !b.closest(".fixed")) { b.__tpS = true; b.classList.add("tp-shine"); }
     });
+
+    // Section tags pop in.
+    root.querySelectorAll(".tag-div").forEach(function (t) { if (!t.closest(".fixed")) watch(t, "tp-tagwait", 0); });
 
     // Statistic numbers count up.
     root.querySelectorAll("div, p, span").forEach(function (el) {
@@ -765,6 +768,79 @@
   }
 
   /* ---------------- boot ---------------- */
+  /* ---------------- mobile menu as a half-screen drawer ---------------- */
+  function menuDrawer() {
+    var ov = document.querySelector(".bg-avocado-green-900.h-screen.w-screen");
+    var scrim = document.querySelector(".tp-menu-scrim");
+    if (ov && innerWidth < 960) {
+      if (!ov.classList.contains("tp-drawer")) {
+        ov.classList.add("tp-drawer");
+        var top = ov.firstElementChild;
+        var brand = el("div", { class: "tp-drawer-brand" }, '<img src="/static/img/menu/triport-logo.png" alt="">Triport Agro International Limited');
+        if (top && top.nextSibling) ov.insertBefore(brand, top.nextSibling);
+        var foot = el("div", { class: "tp-drawer-foot" },
+          '<a class="tp-df-quote" href="/contact-us#quote">Request a quote →</a><a class="tp-df-wa" href="https://wa.me/256780391916" target="_blank" rel="noopener">WhatsApp us</a>');
+        ov.appendChild(foot);
+      }
+      if (!scrim) {
+        scrim = el("div", { class: "tp-menu-scrim", role: "button", "aria-label": "Close menu" }, "<span>Tap to close ›</span>");
+        ov.parentElement.insertBefore(scrim, ov);
+        scrim.addEventListener("click", function () {
+          var x = ov.querySelector(".mb-12 svg, .mb-12 button");
+          if (x) x.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        });
+      }
+      document.body.classList.add("tp-menu-open");
+    } else {
+      if (scrim) scrim.remove();
+      document.body.classList.remove("tp-menu-open");
+    }
+  }
+
+  /* ---------------- page transition curtain ---------------- */
+  function curtain() {
+    if (reduce) return;
+    var c = el("div", { class: "tp-curtain", "aria-hidden": "true" }, '<img src="/static/img/menu/triport-logo.png" alt="">');
+    document.body.appendChild(c);
+    var arrived = false;
+    try { arrived = sessionStorage.getItem("tp-curtain") === "1"; sessionStorage.removeItem("tp-curtain"); } catch (e) {}
+    if (arrived) {
+      c.style.transition = "none";
+      c.classList.add("tp-cover");
+      setTimeout(function () { c.style.transition = ""; c.classList.remove("tp-cover"); c.classList.add("tp-leave"); setTimeout(function () { c.className = "tp-curtain"; }, 800); }, 250);
+    }
+    document.addEventListener("click", function (e) {
+      if (e.defaultPrevented && !e.target.closest("a[href]")) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target.closest("a[href]");
+      if (!a || a.target === "_blank" || a.hasAttribute("download")) return;
+      var url;
+      try { url = new URL(a.getAttribute("href"), location.href); } catch (x) { return; }
+      if (url.origin !== location.origin || /^\/api\//.test(url.pathname) || /\.(pdf|png|jpe?g|webp|mp4)$/i.test(url.pathname)) return;
+      if (url.pathname === location.pathname && url.search === location.search) return; // same page / anchor
+      try { sessionStorage.setItem("tp-curtain", "1"); } catch (x) {}
+      c.classList.remove("tp-leave");
+      c.classList.add("tp-cover");
+      setTimeout(function () { c.classList.remove("tp-cover"); }, 2600); // never leave the page covered
+    }, true);
+    addEventListener("pageshow", function (e) { if (e.persisted) { c.className = "tp-curtain"; } });
+  }
+
+  /* ---------------- hero produce follows the pointer (desktop) ---------------- */
+  function heroFollow() {
+    if (reduce || !finePointer) return;
+    var layers = [];
+    document.querySelectorAll('img[src*="static/img/header/"], img[src*="discover-avocados/"]').forEach(function (img) {
+      var p = img.parentElement;
+      if (p && layers.indexOf(p) < 0) { p.classList.add("tp-follow"); p.__depth = /outoffocus/.test(img.src) ? 10 : 22; layers.push(p); }
+    });
+    if (!layers.length) return;
+    addEventListener("pointermove", function (e) {
+      var x = e.clientX / innerWidth - 0.5, y = e.clientY / innerHeight - 0.5;
+      layers.forEach(function (p) { p.style.translate = (x * p.__depth).toFixed(1) + "px " + (y * p.__depth).toFixed(1) + "px"; });
+    }, { passive: true });
+  }
+
   function whatsapp() {
     var a = el("a", { class: "tp-wa", href: "https://wa.me/256780391916?text=" + encodeURIComponent("Hello Triport Agro, I'd like to ask about your products."), target: "_blank", rel: "noopener", "aria-label": "Chat with Triport Agro on WhatsApp" },
       '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M12.04 2a9.93 9.93 0 0 0-8.6 14.9L2 22l5.25-1.38A9.94 9.94 0 1 0 12.04 2Zm0 18.1a8.1 8.1 0 0 1-4.13-1.13l-.3-.18-3.11.82.83-3.04-.2-.31a8.13 8.13 0 1 1 6.91 3.84Zm4.46-6.08c-.24-.12-1.45-.72-1.68-.8-.22-.08-.39-.12-.55.12-.16.25-.63.8-.77.96-.14.17-.28.19-.53.07a6.66 6.66 0 0 1-3.31-2.9c-.25-.43.25-.4.72-1.33.08-.16.04-.3-.02-.42-.06-.12-.55-1.33-.76-1.82-.2-.48-.4-.41-.55-.42h-.47a.9.9 0 0 0-.65.3 2.74 2.74 0 0 0-.85 2.04 4.77 4.77 0 0 0 1 2.53 10.9 10.9 0 0 0 4.17 3.69c1.56.67 2.17.73 2.95.61a2.52 2.52 0 0 0 1.65-1.17 2.05 2.05 0 0 0 .14-1.17c-.06-.1-.22-.16-.47-.28Z"/></svg><span>WhatsApp us</span>');
@@ -776,6 +852,8 @@
     progress();
     cookies();
     whatsapp();
+    curtain();
+    setTimeout(heroFollow, 1500);
     // reCAPTCHA v3 protects every form; its badge shows bottom-right on every page.
     loadCaptcha().catch(function () {});
     if (!document.getElementById("app")) return; // the Experience page has its own animations
@@ -787,6 +865,7 @@
     };
     setTimeout(tick, 400);
     var pending = false;
+    new MutationObserver(menuDrawer).observe(document.getElementById("app"), { childList: true, subtree: true });
     new MutationObserver(function () {
       if (pending) return;
       pending = true;
