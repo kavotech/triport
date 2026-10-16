@@ -13,7 +13,7 @@
 
   /* ---------------- reCAPTCHA + delivery ---------------- */
   var isLocal = ["localhost", "127.0.0.1", "::1"].indexOf(location.hostname) !== -1;
-  var SITE_KEY = isLocal ? "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" : "6LeqveQsAAAAAPI0BHdk-4BuZIIbGIKglMmTR-f2";
+  var SITE_KEY = isLocal ? "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" : "6LclMvEtAAAAAHokwqLt_lHvN-brCb522WsuRopD";
   var captchaPromise = null;
   function loadCaptcha() {
     if (captchaPromise) return captchaPromise;
@@ -116,9 +116,13 @@
   addEventListener("scroll", scheduleCheck, { passive: true });
   addEventListener("resize", scheduleCheck);
 
+  var bootAt = Date.now();
+  function onScreenNow(el) { var r = el.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }
   function watch(el, cls, delay) {
     if (!io || reduce || el.__tp) return;
     el.__tp = true;
+    // Content that is already on screen when the page loads is shown straight away, never hidden.
+    if (Date.now() - bootAt < 2500 && onScreenNow(el)) return;
     if (cls) cls.split(" ").forEach(function (c) { el.classList.add(c); });
     if (delay) el.style.setProperty("--tp-delay", delay + "ms");
     pendingEls.push(el);
@@ -210,7 +214,85 @@
     });
 
     teamCards(root);
+    extraMotion(root);
   }
+
+  /* ---------------- extra motion: parallax, tilt, glow, magnetic buttons, link sweeps ---------------- */
+  var parallaxEls = [];
+  var finePointer = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  function extraMotion(root) {
+    if (reduce) return;
+    // Large photos drift with the scroll; very large ones also slowly zoom (Ken Burns).
+    root.querySelectorAll("img").forEach(function (img) {
+      if (img.__tpP || img.closest(".fixed") || img.closest(".tp-quote") || img.closest(".tp-team-card")) return;
+      var src = img.getAttribute("src") || "";
+      if (!/static\/img\/triport\/.*\.jpg$/.test(src)) return;
+      var r = img.getBoundingClientRect();
+      if (r.width < 280 || r.height < 260) return;
+      img.__tpP = true;
+      img.classList.add("tp-parallax");
+      if (r.width > 700) img.classList.add("tp-kb");
+      parallaxEls.push(img);
+    });
+    if (finePointer) {
+      root.querySelectorAll(".tp-card").forEach(function (card) {
+        if (card.__tpTilt) return;
+        card.__tpTilt = true;
+        card.addEventListener("pointermove", function (e) {
+          var r = card.getBoundingClientRect();
+          var x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+          card.style.setProperty("--tp-mx", x * 100 + "%");
+          card.style.setProperty("--tp-my", y * 100 + "%");
+          card.style.setProperty("--tp-ry", ((x - 0.5) * 6).toFixed(2) + "deg");
+          card.style.setProperty("--tp-rx", ((0.5 - y) * 6).toFixed(2) + "deg");
+        });
+        card.addEventListener("pointerleave", function () { card.style.setProperty("--tp-rx", "0deg"); card.style.setProperty("--tp-ry", "0deg"); });
+      });
+      root.querySelectorAll(".tp-shine").forEach(function (b) {
+        if (b.__tpMag || b.closest(".fixed")) return;
+        b.__tpMag = true;
+        b.classList.add("tp-magnet");
+        b.addEventListener("pointermove", function (e) {
+          var r = b.getBoundingClientRect();
+          b.style.translate = ((e.clientX - r.left - r.width / 2) * 0.18).toFixed(1) + "px " + ((e.clientY - r.top - r.height / 2) * 0.28).toFixed(1) + "px";
+        });
+        b.addEventListener("pointerleave", function () { b.style.translate = "0 0"; });
+      });
+    }
+    // Text links get an underline sweep; footer link lists stagger in.
+    root.querySelectorAll("footer a, [class*='bg-avocado-green-50'] a, .body-bold-sm-desktop a").forEach(function (a) {
+      if (a.__tpU || /rounded-full/.test(a.className + "") || a.querySelector("img, svg")) return;
+      a.__tpU = true;
+      a.classList.add("tp-ulink");
+    });
+    root.querySelectorAll("[class*='bg-avocado-green-50'] .body-bold-lg-desktop > div").forEach(function (list) {
+      if (list.__tpF) return;
+      list.__tpF = true;
+      Array.prototype.forEach.call(list.children, function (c, i) { c.style.setProperty("--tp-delay", i * 70 + "ms"); });
+      var r = list.getBoundingClientRect();
+      var go = function () { list.classList.add("tp-footer-in"); };
+      if (r.top < innerHeight) go(); else if (io) { var o = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { go(); o.disconnect(); } }); o.observe(list); }
+    });
+    // Primary call-to-action buttons pulse gently to draw the eye.
+    root.querySelectorAll("a[href$='contact-us'] button, a[href$='/contact-us'] > *").forEach(function (b) {
+      if (b.__tpPulse || b.closest(".fixed")) return;
+      b.__tpPulse = true;
+      if (/rounded-full/.test(b.className + "")) b.classList.add("tp-pulse");
+    });
+  }
+  var parallaxTick = false;
+  function runParallax() {
+    parallaxTick = false;
+    var vh = innerHeight;
+    parallaxEls = parallaxEls.filter(function (img) { return img.isConnected; });
+    parallaxEls.forEach(function (img) {
+      var r = img.getBoundingClientRect();
+      if (r.bottom < -200 || r.top > vh + 200) return;
+      var offset = (r.top + r.height / 2 - vh / 2) / vh;
+      img.style.translate = "0 " + (offset * -38).toFixed(1) + "px";
+    });
+  }
+  addEventListener("scroll", function () { if (!parallaxTick && !reduce) { parallaxTick = true; setTimeout(runParallax, 16); } }, { passive: true });
 
   /* ---------------- team cards ---------------- */
   function teamCards(root) {
@@ -498,9 +580,120 @@
     return true;
   }
 
+  /* ---------------- cookie consent ---------------- */
+  var CONSENT_KEY = "tp_cookie_consent_v1";
+  var COOKIE_GROUPS = [
+    { id: "necessary", title: "Strictly necessary", locked: true, text: "Needed for the site to work: page navigation, security (reCAPTCHA spam protection) and remembering your cookie choices. These cannot be switched off.", examples: "tp_cookie_consent_v1, _GRECAPTCHA" },
+    { id: "functional", title: "Functional", text: "Remember choices you make, such as form details you have started, so the site works the way you expect.", examples: "Saved form progress, language and region" },
+    { id: "analytics", title: "Analytics", text: "Help us understand how visitors use the site, which pages are popular and where people get stuck, so we can improve it. Data is aggregated.", examples: "Page views, visit length, device type" },
+    { id: "performance", title: "Performance", text: "Measure loading speed and errors so we can keep the site fast on every connection.", examples: "Load times, error reports" },
+    { id: "marketing", title: "Marketing", text: "Used to show you relevant Triport Agro adverts on other websites and measure how well campaigns work.", examples: "Advertising IDs, campaign attribution" },
+    { id: "personalisation", title: "Personalisation", text: "Tailor content, such as the products we highlight, to your interests and region.", examples: "Recently viewed products, region" },
+    { id: "social", title: "Social media", text: "Allow content and sharing features from social networks such as LinkedIn, Facebook, Instagram and X.", examples: "Share buttons, embedded posts" }
+  ];
+
+  function readConsent() {
+    try { return JSON.parse(localStorage.getItem(CONSENT_KEY) || "null"); } catch (e) { return null; }
+  }
+  function saveConsent(choices) {
+    var record = { choices: choices, date: new Date().toISOString(), version: 1 };
+    try { localStorage.setItem(CONSENT_KEY, JSON.stringify(record)); } catch (e) {}
+    window.tpConsent = choices;
+    try { window.dispatchEvent(new CustomEvent("tp:consent", { detail: choices })); } catch (e) {}
+  }
+
+  function cookies() {
+    var saved = readConsent();
+    window.tpConsent = saved ? saved.choices : null;
+
+    var fab = el("button", { class: "tp-cookie-fab", type: "button", "aria-label": "Cookie settings" }, '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5Zm-4.5 9A1.5 1.5 0 1 1 9 9.5 1.5 1.5 0 0 1 7.5 11Zm1 5A1.5 1.5 0 1 1 10 14.5 1.5 1.5 0 0 1 8.5 16Zm7 1a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5Z"/></svg>');
+    document.body.appendChild(fab);
+
+    var root = el("div", { class: "tp-cookie-root", role: "dialog", "aria-modal": "false", "aria-labelledby": "tp-cookie-title" });
+    document.body.appendChild(root);
+    var state = {};
+
+    function current() {
+      var c = {};
+      COOKIE_GROUPS.forEach(function (g) { c[g.id] = g.locked ? true : !!state[g.id]; });
+      return c;
+    }
+    function close(choices) {
+      saveConsent(choices);
+      root.classList.remove("tp-open");
+      root.classList.add("tp-closing");
+      setTimeout(function () { root.className = "tp-cookie-root"; root.innerHTML = ""; fab.classList.add("tp-show"); }, 450);
+    }
+    function all(v) { var c = {}; COOKIE_GROUPS.forEach(function (g) { c[g.id] = g.locked ? true : v; }); return c; }
+
+    function banner() {
+      root.className = "tp-cookie-root tp-banner";
+      root.setAttribute("aria-modal", "false");
+      root.innerHTML =
+        '<div class="tp-cookie-card">' +
+        '<div class="tp-cookie-head"><span class="tp-cookie-icon" aria-hidden="true">🍪</span><div><h2 id="tp-cookie-title">We value your privacy</h2>' +
+        '<p>We use cookies to keep this site secure and working, and – with your permission – to understand how it is used, improve it and show relevant content. You can change your choice at any time. Read our <a href="/privacy-policy-and-terms-of-use">privacy policy</a>.</p></div></div>' +
+        '<div class="tp-cookie-actions"><button type="button" class="tp-cbtn tp-cbtn-ghost" data-c="prefs">Manage preferences</button><button type="button" class="tp-cbtn tp-cbtn-outline" data-c="reject">Reject optional</button><button type="button" class="tp-cbtn tp-cbtn-solid" data-c="accept">Accept all</button></div>' +
+        "</div>";
+      requestAnimationFrame(function () { root.classList.add("tp-open"); });
+      fab.classList.remove("tp-show");
+    }
+
+    function prefs() {
+      var s = readConsent();
+      COOKIE_GROUPS.forEach(function (g) { state[g.id] = g.locked ? true : !!(s && s.choices && s.choices[g.id]); });
+      root.className = "tp-cookie-root tp-modal";
+      root.setAttribute("aria-modal", "true");
+      root.innerHTML =
+        '<div class="tp-cookie-backdrop" data-c="dismiss"></div><div class="tp-cookie-panel">' +
+        '<div class="tp-cookie-panel-head"><div><span class="tp-eyebrow">Privacy centre</span><h2 id="tp-cookie-title">Cookie preferences</h2>' +
+        "<p>Choose which cookies Triport Agro International Limited may use. Strictly necessary cookies are always on. Tap a category to see what it covers.</p></div>" +
+        '<button type="button" class="tp-cookie-x" data-c="dismiss" aria-label="Close">×</button></div>' +
+        '<div class="tp-cookie-quick"><button type="button" class="tp-cbtn tp-cbtn-outline tp-sm" data-c="allon">Turn all on</button><button type="button" class="tp-cbtn tp-cbtn-outline tp-sm" data-c="alloff">Turn all off</button></div>' +
+        '<ul class="tp-cookie-list">' +
+        COOKIE_GROUPS.map(function (g) {
+          return '<li class="tp-cookie-item"><div class="tp-cookie-row"><button type="button" class="tp-cookie-more" aria-expanded="false" data-more="' + g.id + '"><span class="tp-chev" aria-hidden="true">›</span>' + g.title + (g.locked ? ' <em>Always on</em>' : "") + "</button>" +
+            '<label class="tp-switch"><input type="checkbox" data-g="' + g.id + '"' + (state[g.id] ? " checked" : "") + (g.locked ? " disabled" : "") + ' aria-label="' + g.title + ' cookies"><span></span></label></div>' +
+            '<div class="tp-cookie-detail" hidden><p>' + g.text + '</p><p class="tp-cookie-ex"><strong>Examples:</strong> ' + g.examples + "</p></div></li>";
+        }).join("") +
+        "</ul>" +
+        '<div class="tp-cookie-foot"><button type="button" class="tp-cbtn tp-cbtn-outline" data-c="reject">Reject optional</button><button type="button" class="tp-cbtn tp-cbtn-ghost2" data-c="save">Save my choices</button><button type="button" class="tp-cbtn tp-cbtn-solid" data-c="accept">Accept all</button></div>' +
+        "</div>";
+      requestAnimationFrame(function () { root.classList.add("tp-open"); var f = root.querySelector(".tp-cookie-x"); if (f) f.focus(); });
+      fab.classList.remove("tp-show");
+    }
+
+    root.addEventListener("change", function (e) { var g = e.target.dataset.g; if (g) state[g] = e.target.checked; });
+    root.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-c], [data-more]");
+      if (!b) return;
+      if (b.dataset.more) {
+        var item = b.closest(".tp-cookie-item"), d = item.querySelector(".tp-cookie-detail"), open = d.hidden;
+        d.hidden = !open; b.setAttribute("aria-expanded", String(open)); item.classList.toggle("tp-expanded", open);
+        return;
+      }
+      var c = b.dataset.c;
+      if (c === "accept") close(all(true));
+      else if (c === "reject") close(all(false));
+      else if (c === "save") close(current());
+      else if (c === "prefs") prefs();
+      else if (c === "allon" || c === "alloff") { root.querySelectorAll("input[data-g]:not([disabled])").forEach(function (i) { i.checked = c === "allon"; state[i.dataset.g] = i.checked; }); }
+      else if (c === "dismiss") { if (readConsent()) close(readConsent().choices); else banner(); }
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("tp-modal")) { if (readConsent()) close(readConsent().choices); else banner(); } });
+    fab.addEventListener("click", prefs);
+    window.tpOpenCookieSettings = prefs;
+
+    if (saved) fab.classList.add("tp-show");
+    else setTimeout(banner, 900);
+  }
+
   /* ---------------- boot ---------------- */
   function boot() {
     progress();
+    cookies();
+    // reCAPTCHA v3 protects every form; its badge shows bottom-right on every page.
+    loadCaptcha().catch(function () {});
     if (!document.getElementById("app")) return; // the Experience page has its own animations
     var tries = 0;
     var tick = function () {
