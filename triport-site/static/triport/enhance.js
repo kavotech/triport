@@ -215,6 +215,75 @@
 
     teamCards(root);
     extraMotion(root);
+    contrastGuard();
+  }
+
+  /* ---------------- contrast guard: no text may blend into its background ---------------- */
+  function parseColor(c) {
+    if (!c) return null;
+    var m = c.match(/color\(display-p3 ([\d.]+) ([\d.]+) ([\d.]+)(?: \/ ([\d.]+))?\)/), r, g, b, a = 1;
+    if (m) { r = +m[1]; g = +m[2]; b = +m[3]; if (m[4] !== undefined) a = +m[4]; }
+    else {
+      m = c.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);
+      if (!m) return null;
+      r = m[1] / 255; g = m[2] / 255; b = m[3] / 255; if (m[4] !== undefined) a = +m[4];
+    }
+    var f = function (v) { return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return { r: r, g: g, b: b, a: a, L: 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) };
+  }
+  function brightGreen(c) { return c && c.g > 0.62 && c.r < 0.25 && c.b < 0.3 && c.a > 0.6; }
+  function overImage(el) {
+    var r = el.getBoundingClientRect();
+    var imgs = document.querySelectorAll("img, video, [style*='background-image']");
+    for (var i = 0; i < imgs.length; i++) {
+      var im = imgs[i];
+      if (im.contains(el)) return true;
+      var q = im.getBoundingClientRect();
+      if (q.width > 60 && q.height > 60 && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top) return true;
+    }
+    return false;
+  }
+  var guardTimer = null;
+  function contrastGuard() {
+    if (guardTimer) return;
+    guardTimer = setTimeout(function () {
+      guardTimer = null;
+      var app = document.getElementById("app");
+      if (!app) return;
+      // 1. Bright-green filled buttons with white text get the deeper brand green.
+      app.querySelectorAll("button, a, div, span").forEach(function (el) {
+        if (el.__tpBtn || el.closest(".fixed .tp-dropdown")) return;
+        var cs = getComputedStyle(el);
+        if (brightGreen(parseColor(cs.backgroundColor)) && el.textContent.trim()) { el.__tpBtn = true; el.classList.add("tp-btn-deep"); }
+      });
+      // 2. Text checks.
+      app.querySelectorAll("*").forEach(function (el) {
+        if (el.__tpC2 || el.closest(".fixed, .tp-cookie-root, svg")) return;
+        var own = false;
+        for (var i = 0; i < el.childNodes.length; i++) if (el.childNodes[i].nodeType === 3 && el.childNodes[i].textContent.trim().length > 1) { own = true; break; }
+        if (!own) return;
+        var cs = getComputedStyle(el);
+        if (cs.display === "none" || cs.visibility === "hidden") return;
+        var fg = parseColor(cs.color);
+        if (!fg) return;
+        var bg = null, img = false, n = el;
+        while (n && n.nodeType === 1) {
+          var ns = getComputedStyle(n);
+          if (ns.backgroundImage && ns.backgroundImage !== "none" && !/gradient/.test(ns.backgroundImage)) { img = true; break; }
+          var b = parseColor(ns.backgroundColor);
+          if (b && b.a > 0.6) { bg = b; break; }
+          n = n.parentElement;
+        }
+        if (brightGreen(fg) && !img && (!bg || bg.L > 0.5)) { el.__tpC2 = true; (el.closest("a") || el).classList.add("tp-green-text"); return; }
+        if (img) return;
+        if (!bg) { if (overImage(el)) return; bg = { L: 1, g: 1, r: 1, b: 1 }; }
+        el.__tpC2 = true;
+        var ratio = (Math.max(fg.L, bg.L) + 0.05) / (Math.min(fg.L, bg.L) + 0.05);
+        if (brightGreen(fg) && bg.L > 0.5) { (el.closest("a") || el).classList.add("tp-green-text"); return; }
+        if (brightGreen(bg)) return; // handled by the button rule
+        if (ratio < 3) el.classList.add(bg.L < 0.4 ? "tp-force-light" : "tp-force-dark");
+      });
+    }, 300);
   }
 
   /* ---------------- extra motion: parallax, tilt, glow, magnetic buttons, link sweeps ---------------- */
@@ -229,6 +298,13 @@
       if (!/static\/img\/triport\/.*\.jpg$/.test(src)) return;
       var r = img.getBoundingClientRect();
       if (r.width < 280 || r.height < 260) return;
+      // Only inside a cropping box, so the slight zoom never widens the page.
+      var box = img.parentElement, clipped = false;
+      for (var k = 0; k < 3 && box; k++, box = box.parentElement) {
+        var ov = getComputedStyle(box).overflow;
+        if (/hidden|clip/.test(ov)) { clipped = true; break; }
+      }
+      if (!clipped) return;
       img.__tpP = true;
       img.classList.add("tp-parallax");
       if (r.width > 700) img.classList.add("tp-kb");
@@ -689,9 +765,17 @@
   }
 
   /* ---------------- boot ---------------- */
+  function whatsapp() {
+    var a = el("a", { class: "tp-wa", href: "https://wa.me/256780391916?text=" + encodeURIComponent("Hello Triport Agro, I'd like to ask about your products."), target: "_blank", rel: "noopener", "aria-label": "Chat with Triport Agro on WhatsApp" },
+      '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M12.04 2a9.93 9.93 0 0 0-8.6 14.9L2 22l5.25-1.38A9.94 9.94 0 1 0 12.04 2Zm0 18.1a8.1 8.1 0 0 1-4.13-1.13l-.3-.18-3.11.82.83-3.04-.2-.31a8.13 8.13 0 1 1 6.91 3.84Zm4.46-6.08c-.24-.12-1.45-.72-1.68-.8-.22-.08-.39-.12-.55.12-.16.25-.63.8-.77.96-.14.17-.28.19-.53.07a6.66 6.66 0 0 1-3.31-2.9c-.25-.43.25-.4.72-1.33.08-.16.04-.3-.02-.42-.06-.12-.55-1.33-.76-1.82-.2-.48-.4-.41-.55-.42h-.47a.9.9 0 0 0-.65.3 2.74 2.74 0 0 0-.85 2.04 4.77 4.77 0 0 0 1 2.53 10.9 10.9 0 0 0 4.17 3.69c1.56.67 2.17.73 2.95.61a2.52 2.52 0 0 0 1.65-1.17 2.05 2.05 0 0 0 .14-1.17c-.06-.1-.22-.16-.47-.28Z"/></svg><span>WhatsApp us</span>');
+    document.body.appendChild(a);
+    setTimeout(function () { a.classList.add("tp-show"); }, 1600);
+  }
+
   function boot() {
     progress();
     cookies();
+    whatsapp();
     // reCAPTCHA v3 protects every form; its badge shows bottom-right on every page.
     loadCaptcha().catch(function () {});
     if (!document.getElementById("app")) return; // the Experience page has its own animations

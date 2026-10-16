@@ -3,7 +3,8 @@
   --tp-green-900: #07371a;
   --tp-green-750: #075124;
   --tp-green-700: #06d327;
-  --tp-green-btn: #0fb42a;
+  --tp-green-btn: #0e8a24;
+  --tp-green-deep: #0e8a24;
   --tp-green-200: #eef3f0;
   --tp-green-100: #f2faf3;
   --tp-line: #e7f3e9;
@@ -266,7 +267,7 @@ textarea.tp-input { resize: vertical; min-height: 120px; }
 .tp-switch input:focus-visible + span { outline: 3px solid rgba(15, 180, 42, 0.45); outline-offset: 2px; }
 .tp-cookie-foot { margin-top: 22px; justify-content: flex-end; }
 
-.tp-cookie-fab { all: unset; cursor: pointer; position: fixed; left: 18px; bottom: 18px; z-index: 29999; width: 48px; height: 48px; border-radius: 9999px; display: grid; place-items: center; background: var(--tp-green-900); color: #fff; box-shadow: 0 14px 30px -12px rgba(7, 55, 26, 0.7); transform: scale(0); transition: transform 500ms var(--tp-ease); }
+.tp-cookie-fab { all: unset; cursor: pointer; position: fixed; left: 18px; bottom: 18px; z-index: 9000; width: 48px; height: 48px; border-radius: 9999px; display: grid; place-items: center; background: var(--tp-green-900); color: #fff; box-shadow: 0 14px 30px -12px rgba(7, 55, 26, 0.7); transform: scale(0); transition: transform 500ms var(--tp-ease); }
 .tp-cookie-fab.tp-show { transform: scale(1); }
 .tp-cookie-fab:hover { transform: scale(1.08) rotate(-12deg); }
 .tp-cookie-fab:focus-visible { outline: 3px solid rgba(15, 180, 42, 0.45); outline-offset: 3px; }
@@ -302,3 +303,54 @@ textarea.tp-input { resize: vertical; min-height: 120px; }
 @media (prefers-reduced-motion: reduce) {
   .tp-parallax, .tp-kb, .tp-pulse, .tp-footer-in > * { animation: none !important; translate: none !important; }
 }
+
+/* ---------- readability: deeper brand green wherever text sits on/under it ---------- */
+.tp-btn-deep { background-color: var(--tp-green-deep) !important; background-image: none !important; box-shadow: 0 1px 1px rgba(255, 255, 255, 0.25) inset, 0 -1px 1px rgba(0, 0, 0, 0.18) inset !important; }
+.tp-btn-deep:hover { background-color: #0b7a1f !important; }
+.top-menu-button { background: var(--tp-green-deep) !important; }
+.tp-green-text { color: var(--tp-green-deep) !important; fill: var(--tp-green-deep) !important; stroke: var(--tp-green-deep) !important; }
+.tp-green-text * { color: var(--tp-green-deep) !important; }
+.tp-force-light, .tp-force-light * { color: #ffffff !important; }
+.tp-force-dark { color: #07371a !important; }
+
+/* ---------- WhatsApp button ---------- */
+.tp-wa { position: fixed; left: 18px; bottom: 76px; z-index: 9000; display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 18px 0 14px; border-radius: 9999px; background: #1fa855; color: #fff; text-decoration: none; font: 700 14px/1 Manrope, sans-serif; box-shadow: 0 16px 34px -14px rgba(10, 80, 40, 0.75); transform: translateY(20px) scale(0.6); opacity: 0; transition: transform 600ms var(--tp-ease), opacity 400ms, box-shadow 300ms; }
+.tp-wa.tp-show { transform: none; opacity: 1; animation: tp-pulse-ring 2.8s ease-out 2s 3; }
+.tp-wa:hover { box-shadow: 0 20px 40px -14px rgba(10, 80, 40, 0.9); transform: translateY(-2px); }
+.tp-wa:focus-visible { outline: 3px solid rgba(15, 180, 42, 0.45); outline-offset: 3px; }
+@media (max-width: 640px) { .tp-wa span { display: none; } .tp-wa { width: 52px; padding: 0; justify-content: center; } }
+body.menu-open .tp-wa, body.menu-open .tp-cookie-fab { display: none; }
+
+/* ---------- mobile polish ---------- */
+@media (max-width: 640px) {
+  .tp-cookie-card { padding: 18px 16px 16px; gap: 14px; margin-bottom: 12px; border-radius: 16px; }
+  .tp-cookie-icon { width: 40px; height: 40px; font-size: 20px; }
+  .tp-cookie-card h2 { font-size: 17px; }
+  .tp-cookie-card p { font-size: 13px; line-height: 1.55; }
+  .tp-cookie-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .tp-cookie-actions .tp-cbtn { flex: none; padding: 12px 10px; font-size: 13px; }
+  .tp-cookie-actions .tp-cbtn-solid { grid-column: 1 / -1; order: -1; }
+  .tp-cookie-actions .tp-cbtn-ghost { grid-column: 1 / -1; text-align: center; }
+  .tp-cookie-panel { padding: 20px 16px; border-radius: 18px; }
+  .tp-cookie-panel-head h2 { font-size: 22px; }
+  .tp-cookie-foot .tp-cbtn { flex: 1 1 100%; }
+  .tp-quote { padding: 80px 16px; }
+  .tp-card-form { padding: 22px 16px; border-radius: 14px; }
+  .tp-quote h2 { font-size: 28px; }
+  .tp-review > div { grid-template-columns: 5.5rem 1fr auto; }
+  .tp-nav .tp-btn { padding: 14px 22px; }
+  .tp-team-more { font-size: 15px; }
+}
+
+/* Keep our button backgrounds when the site's base styles reset button backgrounds. */
+.tp-cookie-fab { background: var(--tp-green-900) !important; }
+.tp-cbtn-solid, .tp-btn { background: var(--tp-green-btn) !important; }
+.tp-cbtn-ghost2 { background: var(--tp-green-900) !important; }
+.tp-cookie-x { background: var(--tp-green-100) !important; }
+.tp-chip { background: #fff !important; }
+.tp-chip[aria-pressed="true"] { background: var(--tp-green-btn) !important; }
+.tp-tile { background: #fff !important; }
+.tp-tile[aria-pressed="true"] { background: var(--tp-green-900) !important; }
+.tp-toggle button[aria-pressed="true"] { background: var(--tp-green-900) !important; }
+.tp-steps .tp-num { background: #fff !important; }
+.tp-steps .tp-done .tp-num { background: var(--tp-green-btn) !important; }
