@@ -7,8 +7,7 @@
     "Micah Bamutura": "micah",
     "Ronald Kaboyo Hamfrey": "kaboyo",
     "Matthew Atuhairwe": "matthew",
-    "Norah Amanya": "norah",
-    "Oliver Alinaitwe": "oliver"
+    "Norah Amanya": "norah"
   };
 
   /* ---------------- reCAPTCHA + delivery ---------------- */

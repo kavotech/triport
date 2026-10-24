@@ -76,21 +76,5 @@ She holds a Master of Laws (LLM) in Oil and Gas Law from the University of Aberd
       "Supports tax, licensing, and cross-border compliance requirements for international shipments"
     ],
     quote: "Legal Administrator safeguarding Triport Agro's contracts, compliance, and governance as the company grows across international markets."
-  },
-  {
-    slug: "oliver",
-    name: "Oliver Alinaitwe",
-    role: "Strategic Partner",
-    qualifications: "",
-    image: "/team-oliver.png",
-    bio: `Oliver Alinaitwe is a Strategic Partner at Triport Agro International Limited and the founder of <a href="https://www.axisagro.co.uk" target="_blank" rel="noopener" class="team-modal-link">Axis Agro International Limited</a>, a UK-based import and export company that supplies businesses and traders globally.
-
-Through Axis Agro International Limited, Oliver leverages global supply networks while Triport Agro supplies and sources quality agricultural products for these partners, strengthening international trade relationships and market access.`,
-    responsibilities: [
-      "Builds strategic partnerships with buyers, importers, and trade partners",
-      "Supports UK market access and international export opportunities",
-      "Connects Triport Agro with commercial networks through Axis Agro International Limited"
-    ],
-    quote: "Strategic Partner supporting Triport Agro's international trade relationships and market growth through Axis Agro International Limited."
   }
 ];

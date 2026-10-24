@@ -3,6 +3,7 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "redirects": [
+    { "source": "/team-oliver", "destination": "/company-overview", "permanent": false },
     { "source": "/about", "destination": "/company-overview", "permanent": true },
     { "source": "/products", "destination": "/our-products", "permanent": true },
     { "source": "/markets", "destination": "/company-overview", "permanent": true },
